@@ -1,7 +1,9 @@
 function [results_gcause_mat, results_gcause_fdr] = calculate_granger_causality(X)
 
+disp('Start computing granger causality...')
+
 % Dimension of X (# Channels x # Samples x # Trials)
-[CHN SMP TRL] = size(X);
+[CHN, SMP, TRL] = size(X);
 
 glm_time_range = 60;
 

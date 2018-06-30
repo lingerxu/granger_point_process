@@ -1,1 +1,1 @@
-# Toolkit for Discovering Temporal Dependencies in Time Series Data with Granger Causality
+# Toolkit for Discovering Directional Influences in Time Series Data with Granger Causality

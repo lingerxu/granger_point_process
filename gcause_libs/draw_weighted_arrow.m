@@ -1,8 +1,8 @@
 function draw_weighted_arrow(arrow_start, arrow_end, weight, text_loc, weight_sig)
 
 color_max = 20;
-color_pos = get_colormap('red', color_max);
-color_neg = get_colormap('blue', color_max);
+color_pos = get_gradient_colors('red', color_max);
+color_neg = get_gradient_colors('blue', color_max);
 
 color_index = min(ceil(abs(weight))+1, color_max);
 if weight > 0

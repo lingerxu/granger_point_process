@@ -1,7 +1,19 @@
-function visualize_directed_graph(weight_matrix, weight_sig, node_texts, save_name)
+function visualize_directed_graph(weight_matrix, weight_sig, args)
+
+if nargin < 3
+    args = struct();
+end
+
+if isfield(args, 'annotation')
+    annotation = args.annotation;
+else
+    annotation = {'variable1', 'variable2'};
+end
+
+figure_bgcolor = [1 1 1];
 
 % weight_matrix = results_gcause.gcause_mat;
-% node_texts = var_module_list;
+% annotation = var_module_list;
 [num_nodes, m] = size(weight_matrix);
 if num_nodes ~= m
     error('Weight matrix should have the same number of rows and columns');
@@ -15,9 +27,17 @@ height = len_unit * ceil(num_nodes/2);
 width = len_unit * 2 + len_gap;
 
 % if user wants to use this function and save it as an individual figure
-if nargin > 3
-    h = figure('Position', [50 50 50*width 50*height],'Visible', 'off');
+h1 = figure;
+if isfield(args, 'set_position')
+    set(h1, 'Position', args.set_position, 'Color', figure_bgcolor);
+else
+    screensize = get(0, 'Screensize');
+    fig_width = 25*width;
+    fig_height = 25*height;
+    fig_position = [50 screensize(4)-fig_height-100 fig_width fig_height];
+    set(h1, 'Position', fig_position, 'Color', figure_bgcolor);
 end
+    
 hold on;
 xlim([0 width]);
 ylim([0 height]);
@@ -30,7 +50,7 @@ for nidx = 1:num_nodes
     rectangle('Position', [x y len_side len_side], 'Curvature',1, 'LineWidth', 3);
     center_x = x+len_side/2;
     center_y = y+len_side/2;
-    text(center_x, center_y, node_texts{nidx}, 'HorizontalAlignment', 'center', 'FontSize', 15);
+    text(center_x, center_y, annotation{nidx}, 'HorizontalAlignment', 'center', 'FontSize', 15);
 
     if nidx == 2
         % to this node
@@ -135,10 +155,12 @@ for nidx = 1:num_nodes
 end
 
 hold off;
-set(gca,'Visible','off');
+set(gca, 'Visible','off');
 
-if nargin > 3
-    set(h,'PaperPositionMode','auto');
-    saveas(h, save_name);
-    close(h);
+%% all the plotting is done, start saving
+if isfield(args, 'save_name')
+    save_name = args.save_name;
+    set(h1,'PaperPositionMode','auto');
+    saveas(h1, [save_name '.png']);
+%     close(h1);
 end

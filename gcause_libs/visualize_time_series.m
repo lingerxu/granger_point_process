@@ -1,15 +1,6 @@
 function visualize_time_series(data, args)
-% This is a plotting function for visualizing temperol pattens
+% This is a plotting function for visualizing temperol events data
 % For input format, please see the function get_test_data() below
-% 
-% Example:
-% >>>  args.legend = {'Event1'; 'Event2'; 'Event3'; 'Event4'};
-% >>>  plot_temp_patterns({}, 1, args)
-
-% add other vs target
-
-% debugging:
-% visualize_cevent_patterns(data, args)
 
 LENGTH_CEVENT = 3;
 
@@ -18,6 +9,10 @@ LENGTH_CEVENT = 3;
 % else
 %     text_offset = 20;
 % end
+
+if nargin < 2
+    args = struct();
+end
 
 figure_bgcolor = [1 1 1];
 text_bgcolor = figure_bgcolor;
@@ -59,8 +54,8 @@ end
 
 if isfield(args, 'is_closeplot')
     is_closeplot = args.is_closeplot;
-elseif isfield(args, 'save_name')
-    is_closeplot = true;
+% elseif isfield(args, 'save_name')
+%     is_closeplot = true;
 else
     is_closeplot = false;
 end
@@ -99,7 +94,7 @@ if iscell(data)
             data_column_new = vertcat(data_column{:});
             max_data_column_length = list_cevent_length(1);
         end
-        if max_data_column_length < 1;
+        if max_data_column_length < 1
             tmp_len = length(data_column_length);
             data_column_new = nan(tmp_len, 3);
         end
@@ -177,7 +172,7 @@ if isfield(args, 'ForceZero')
         if sum(isnan(time_ref)) > 0
 %             time_idx_list = sort([1:3:size(data_mat,2) 2:3:size(data_mat,2)]);
             nan_count_data = sum(isnan(data_mat));
-            [I J] = find(nan_count_data);
+            [I, J] = find(nan_count_data);
             ref_column = min(setdiff(1:size(data_mat,2), J));
             if isfield(args, 'ref_column')
                 warning(['The reference column for ForceZero time has NaN ' ...
@@ -195,7 +190,7 @@ else
     data_mat = data;
 end
 
-if isfield(args, 'color_code') && strcmp(args.color_code, 'cevent_value')    
+if isfield(args, 'color_code') && strcmp(args.color_code, 'category')    
     value_idx_list = 3:LENGTH_CEVENT:size(data_mat,2);
     max_cevent_value = max(max(data_mat(:,value_idx_list)));
 end
@@ -232,7 +227,8 @@ for fidx = 1:num_figures
     if isfield(args, 'set_position')
         set(h, 'Position', args.set_position, 'Color', figure_bgcolor);
     else
-        fig_position = [20 10 1600 (100+position_row_width*rows_one)];
+        screensize = get(0, 'Screensize');
+        fig_position = [50 50 screensize(3)-60 (100+position_row_width*rows_one)];
         set(h, 'Position', fig_position, 'Color', figure_bgcolor);
     end
     
@@ -296,11 +292,11 @@ for fidx = 1:num_figures
         for columnidx = 1:cols
             cevent_one = data_mat(rowidx+(fidx-1)*MAX_ROWS,(columnidx-1)*3+1:(columnidx-1)*3+3);
             pos_num_new = args.stream_position(columnidx);
-            if isfield(args, 'var_text')
-                if iscell(args.var_text)
-                    var_text_one =  args.var_text{pos_num_new};
-                elseif ischar(args.var_text)
-                    var_text_one = sprintf('%s%d', args.var_text, pos_num_new);
+            if isfield(args, 'annotation')
+                if iscell(args.annotation)
+                    var_text_one =  args.annotation{pos_num_new};
+                elseif ischar(args.annotation)
+                    var_text_one = sprintf('%s%d', args.annotation, pos_num_new);
                 end
             end
             
@@ -314,9 +310,9 @@ for fidx = 1:num_figures
                     cont_colormap = get_colormap(args.cont_color_str{pos_num_new}, args.convert_max_int);
                     color = get_color(cevent_one(3), args.convert_max_int, cont_colormap);
                 else
-                    if ~isfield(args, 'color_code') || strcmp(args.color_code, 'cevent_type')
+                    if ~isfield(args, 'color_code') || strcmp(args.color_code, 'variable')
                         color = get_color(columnidx, cols, colormap); %get_color(cevent_one(3));
-                    elseif isfield(args, 'color_code') && strcmp(args.color_code, 'cevent_value')
+                    elseif isfield(args, 'color_code') && strcmp(args.color_code, 'category')
                         color = get_color(cevent_one(3), max_cevent_value, colormap);
     %                     args.edge_color = get_color(mod(cevent_one(3), 10), max_cevent_value, colormap);
                     end
@@ -332,7 +328,7 @@ for fidx = 1:num_figures
             end
             
             y_new = mean(y);
-            if pos_num_old ~= pos_num_new && isfield(args, 'var_text')
+            if pos_num_old ~= pos_num_new && isfield(args, 'annotation')
                 text(text_offset, y_new, var_text_one, 'FontSize', 8, 'Color', text_color, ...
                     'BackgroundColor', text_bgcolor, 'Interpreter', 'none', 'HorizontalAlignment', 'right');
             end
@@ -393,7 +389,7 @@ for fidx = 1:num_figures
     ylim(ylim_list);
     
     if isfield(args, 'title')
-        title(plot_no_underline(args.title), 'FontWeight', 'bold'); %, 'FontSize', 12, 'BackgroundColor', [1 1 1]
+        title(no_underline(args.title), 'FontWeight', 'bold'); %, 'FontSize', 12, 'BackgroundColor', [1 1 1]
     end
     
     if isfield(args, 'xlabel')
@@ -476,5 +472,5 @@ function [x, y] = create_square(x1, x2, y1, cidx, color, args)
     
     x = [x1, x2, x2, x1];
     y = [y1-height, y1-height, y1+height, y1+height];
-    rect = fill(x, y, color, 'EdgeColor', 'k');
+    rect = fill(x, y, color, 'EdgeColor', color);
 end
